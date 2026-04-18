@@ -17,7 +17,8 @@
       "Bash(npm install *)",
       "Bash(npx tauri *)",
       "Bash(npx @tauri-apps/cli icon src-tauri/icons/icon.svg)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(gh run *)"
     ]
   }
 }

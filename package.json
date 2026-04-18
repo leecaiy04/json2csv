@@ -6,7 +6,8 @@
   "scripts": {
     "tauri": "tauri",
     "tauri:dev": "tauri dev",
-    "tauri:build": "tauri build",
+    "tauri:build": "npm run build && tauri build",
+    "build": "mkdir -p dist && cp simple.html dist/index.html",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
