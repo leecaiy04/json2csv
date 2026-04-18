@@ -1,0 +1,5 @@
+<svg width="512" height="512" xmlns="http://www.w3.org/2000/svg">
+  <rect width="512" height="512" fill="#667eea" rx="80"/>
+  <text x="256" y="320" font-size="200" text-anchor="middle" fill="white" font-family="Arial, sans-serif" font-weight="bold">CSV</text>
+  <path d="M 100 150 L 200 150 L 200 200 L 100 200 Z M 220 150 L 320 150 L 320 200 L 220 200 Z M 340 150 L 440 150 L 440 200 L 340 200 Z" fill="white" opacity="0.8"/>
+</svg>

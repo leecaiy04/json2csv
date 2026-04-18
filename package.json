@@ -1,0 +1,27 @@
+{
+  "name": "json2csv",
+  "version": "1.0.0",
+  "description": "纯前端的 JSON 转 CSV/Excel 工具，无需后端服务器。",
+  "main": "index.js",
+  "scripts": {
+    "tauri": "tauri",
+    "tauri:dev": "tauri dev",
+    "tauri:build": "tauri build",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/leecaiy04/json2csv.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/leecaiy04/json2csv/issues"
+  },
+  "homepage": "https://github.com/leecaiy04/json2csv#readme",
+  "devDependencies": {
+    "@tauri-apps/cli": "^2.10.1"
+  }
+}

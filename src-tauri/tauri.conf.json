@@ -1,0 +1,50 @@
+{
+  "$schema": "../node_modules/@tauri-apps/cli/schema.json",
+  "build": {
+    "beforeBuildCommand": "",
+    "beforeDevCommand": "",
+    "devPath": "../simple.html",
+    "distDir": "../"
+  },
+  "package": {
+    "productName": "JSON to CSV Converter",
+    "version": "1.0.0"
+  },
+  "tauri": {
+    "allowlist": {
+      "all": false,
+      "shell": {
+        "all": false,
+        "open": true
+      }
+    },
+    "bundle": {
+      "active": true,
+      "category": "Utility",
+      "copyright": "Copyright (c) 2026",
+      "identifier": "com.leecaiy04.json2csv",
+      "longDescription": "A pure frontend JSON to CSV/Excel converter with drag-drop support",
+      "shortDescription": "JSON to CSV/Excel converter",
+      "targets": "all",
+      "icon": [
+        "icons/icon.png"
+      ]
+    },
+    "security": {
+      "csp": null
+    },
+    "updater": {
+      "active": false
+    },
+    "windows": [
+      {
+        "fullscreen": false,
+        "height": 800,
+        "resizable": true,
+        "title": "JSON to CSV Converter",
+        "width": 1200,
+        "center": true
+      }
+    ]
+  }
+}
