@@ -1,0 +1,566 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON to CSV 转换器 - 简化版</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Microsoft YaHei', sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            padding: 30px;
+        }
+
+        h1 {
+            color: #667eea;
+            margin-bottom: 10px;
+        }
+
+        .section {
+            margin: 20px 0;
+        }
+
+        h2 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2em;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: none;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+        }
+
+        .btn-success {
+            background: #48bb78;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #38a169;
+        }
+
+        .btn-secondary {
+            background: #e0e0e0;
+            color: #333;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 200px;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            font-family: 'Consolas', 'Monaco', monospace;
+            font-size: 13px;
+            resize: vertical;
+        }
+
+        textarea:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .path-options {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            margin: 15px 0;
+        }
+
+        .path-option {
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            cursor: pointer;
+        }
+
+        .path-option:hover {
+            background: #f8f9ff;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 13px;
+            margin: 15px 0;
+            overflow-x: auto;
+            display: block;
+        }
+
+        .preview-table th,
+        .preview-table td {
+            padding: 10px;
+            text-align: left;
+            border: 1px solid #ddd;
+        }
+
+        .preview-table th {
+            background: #f8f9ff;
+            font-weight: 600;
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            padding: 15px 25px;
+            background: #333;
+            color: white;
+            border-radius: 6px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            display: none;
+            z-index: 1000;
+        }
+
+        .toast.show {
+            display: block;
+        }
+
+        .toast.error {
+            background: #e53e3e;
+        }
+
+        .toast.success {
+            background: #48bb78;
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>JSON to CSV/Excel 转换器</h1>
+        <p style="color: #666; margin-bottom: 20px;">支持将 JSON 数组转换为 CSV 或 Excel 格式</p>
+
+        <div class="section">
+            <h2>1. 输入 JSON 数据</h2>
+            <div id="dropZone" style="border: 2px dashed #667eea; border-radius: 8px; padding: 30px; text-align: center; background: #f8f9ff; margin-bottom: 15px; cursor: pointer;">
+                <p style="color: #667eea; margin: 0;">📁 拖拽 JSON/TXT 文件到这里，或点击选择文件</p>
+                <input type="file" id="fileInput" accept=".json,.txt" style="display: none;">
+            </div>
+            <textarea id="jsonInput" placeholder='或者在这里粘贴 JSON 数据，例如：[{"name": "张三", "age": 25}]'></textarea>
+            <div class="btn-group" style="margin-top: 10px;">
+                <button class="btn btn-success" onclick="convertJSON()">🔄 转换</button>
+                <button class="btn btn-secondary" onclick="clearAll()">清除</button>
+            </div>
+        </div>
+
+        <div id="pathSection" class="section hidden">
+            <h2>2. 选择数据路径</h2>
+            <div id="pathOptions" class="path-options"></div>
+        </div>
+
+        <div id="previewSection" class="section hidden">
+            <h2>3. 数据预览</h2>
+            <div id="previewContainer"></div>
+        </div>
+
+        <div class="section">
+            <h2>4. 导出数据</h2>
+            <div class="btn-group">
+                <button id="downloadCsvBtn" class="btn btn-success" onclick="downloadCSV()" disabled>📥 下载 CSV</button>
+                <button id="downloadExcelBtn" class="btn btn-success" onclick="downloadExcel()" disabled>📊 下载 Excel</button>
+                <button id="copyBtn" class="btn btn-primary" onclick="copyToClipboard()" disabled>📋 复制到剪贴板</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast" class="toast"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script>
+        let currentData = null;
+        let selectedPath = '$';
+
+        // 初始化文件拖拽和选择
+        window.addEventListener('DOMContentLoaded', () => {
+            const dropZone = document.getElementById('dropZone');
+            const fileInput = document.getElementById('fileInput');
+
+            // 点击拖拽区域打开文件选择
+            dropZone.addEventListener('click', () => {
+                fileInput.click();
+            });
+
+            // 文件选择
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) {
+                    readFile(file);
+                }
+            });
+
+            // 拖拽事件
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                dropZone.style.background = '#e8ebff';
+                dropZone.style.borderColor = '#5568d3';
+            });
+
+            dropZone.addEventListener('dragleave', () => {
+                dropZone.style.background = '#f8f9ff';
+                dropZone.style.borderColor = '#667eea';
+            });
+
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                dropZone.style.background = '#f8f9ff';
+                dropZone.style.borderColor = '#667eea';
+
+                const file = e.dataTransfer.files[0];
+                if (file) {
+                    readFile(file);
+                }
+            });
+        });
+
+        function readFile(file) {
+            const validExtensions = ['.json', '.txt'];
+            const fileName = file.name.toLowerCase();
+            const isValid = validExtensions.some(ext => fileName.endsWith(ext));
+
+            if (!isValid) {
+                showToast('请选择 JSON 或 TXT 文件', 'error');
+                return;
+            }
+
+            if (file.size > 10 * 1024 * 1024) {
+                if (!confirm('文件大于 10MB，可能需要较长时间处理。是否继续？')) {
+                    return;
+                }
+            }
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                document.getElementById('jsonInput').value = e.target.result;
+                showToast('文件已加载，点击"转换"按钮处理', 'success');
+            };
+            reader.onerror = () => {
+                showToast('文件读取失败', 'error');
+            };
+            reader.readAsText(file);
+        }
+
+        function showToast(message, type = 'info') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast show ' + type;
+            setTimeout(() => {
+                toast.className = 'toast';
+            }, 3000);
+        }
+
+        function convertJSON() {
+            const input = document.getElementById('jsonInput').value.trim();
+
+            if (!input) {
+                showToast('请输入 JSON 数据', 'error');
+                return;
+            }
+
+            try {
+                currentData = JSON.parse(input);
+
+                // 格式化显示
+                document.getElementById('jsonInput').value = JSON.stringify(currentData, null, 2);
+
+                // 检测路径
+                const paths = detectArrayPaths(currentData);
+
+                if (paths.length === 0) {
+                    showToast('未检测到对象数组，请确保 JSON 包含对象数组', 'error');
+                    return;
+                }
+
+                // 显示路径选项
+                showPathOptions(paths);
+
+                // 自动选择第一个路径
+                selectedPath = paths[0].path;
+                processPath(selectedPath);
+
+                showToast('转换成功！', 'success');
+            } catch (error) {
+                showToast('JSON 解析错误: ' + error.message, 'error');
+            }
+        }
+
+        function detectArrayPaths(obj, currentPath = '$', maxDepth = 10, currentDepth = 0) {
+            const paths = [];
+
+            if (currentDepth > maxDepth) return paths;
+
+            if (Array.isArray(obj) && obj.length > 0 && typeof obj[0] === 'object' && obj[0] !== null) {
+                paths.push({
+                    path: currentPath,
+                    count: obj.length
+                });
+            }
+
+            if (typeof obj === 'object' && obj !== null && !Array.isArray(obj)) {
+                for (const key in obj) {
+                    if (obj.hasOwnProperty(key)) {
+                        const newPath = currentPath === '$' ? `$.${key}` : `${currentPath}.${key}`;
+                        paths.push(...detectArrayPaths(obj[key], newPath, maxDepth, currentDepth + 1));
+                    }
+                }
+            }
+
+            return paths;
+        }
+
+        function showPathOptions(paths) {
+            const pathSection = document.getElementById('pathSection');
+            const pathOptions = document.getElementById('pathOptions');
+
+            let html = '';
+            paths.forEach((pathInfo, index) => {
+                html += `
+                    <label class="path-option">
+                        <input type="radio" name="path" value="${pathInfo.path}" ${index === 0 ? 'checked' : ''} onchange="processPath('${pathInfo.path}')">
+                        <strong>${pathInfo.path}</strong> (${pathInfo.count} 项)
+                    </label>
+                `;
+            });
+
+            pathOptions.innerHTML = html;
+            pathSection.classList.remove('hidden');
+        }
+
+        function getValueByPath(obj, path) {
+            if (path === '$') return obj;
+
+            const parts = path.replace(/^\$\./, '').split('.');
+            let current = obj;
+
+            for (const part of parts) {
+                if (current === null || current === undefined) return null;
+                current = current[part];
+            }
+
+            return current;
+        }
+
+        function processPath(path) {
+            selectedPath = path;
+            const data = getValueByPath(currentData, path);
+
+            if (!Array.isArray(data)) {
+                showToast('所选路径不是数组', 'error');
+                return;
+            }
+
+            if (data.length === 0) {
+                showToast('所选数组为空', 'error');
+                return;
+            }
+
+            // 显示预览
+            showPreview(data);
+
+            // 启用导出按钮
+            document.getElementById('downloadCsvBtn').disabled = false;
+            document.getElementById('downloadExcelBtn').disabled = false;
+            document.getElementById('copyBtn').disabled = false;
+        }
+
+        function flattenObject(obj, prefix = '', maxDepth = 3, currentDepth = 0) {
+            const flattened = {};
+
+            if (currentDepth >= maxDepth) {
+                flattened[prefix] = JSON.stringify(obj);
+                return flattened;
+            }
+
+            for (const key in obj) {
+                if (!obj.hasOwnProperty(key)) continue;
+
+                const value = obj[key];
+                const newKey = prefix ? `${prefix}_${key}` : key;
+
+                if (value === null || value === undefined) {
+                    flattened[newKey] = '';
+                } else if (Array.isArray(value)) {
+                    flattened[newKey] = JSON.stringify(value);
+                } else if (typeof value === 'object' && value !== null) {
+                    Object.assign(flattened, flattenObject(value, newKey, maxDepth, currentDepth + 1));
+                } else {
+                    flattened[newKey] = value;
+                }
+            }
+
+            return flattened;
+        }
+
+        function showPreview(data) {
+            const previewSection = document.getElementById('previewSection');
+            const previewContainer = document.getElementById('previewContainer');
+
+            const previewData = data.slice(0, 10);
+            const flattenedData = previewData.map(item => flattenObject(item));
+
+            if (flattenedData.length === 0) {
+                previewContainer.innerHTML = '<p>没有数据可预览</p>';
+                return;
+            }
+
+            const headers = Object.keys(flattenedData[0]);
+
+            let html = '<table class="preview-table"><thead><tr>';
+            headers.forEach(header => {
+                html += `<th>${escapeHtml(header)}</th>`;
+            });
+            html += '</tr></thead><tbody>';
+
+            flattenedData.forEach(row => {
+                html += '<tr>';
+                headers.forEach(header => {
+                    const value = row[header] !== undefined ? row[header] : '';
+                    html += `<td>${escapeHtml(String(value))}</td>`;
+                });
+                html += '</tr>';
+            });
+
+            html += '</tbody></table>';
+
+            if (data.length > 10) {
+                html += `<p style="color: #666;">显示前 10 行，共 ${data.length} 行</p>`;
+            }
+
+            previewContainer.innerHTML = html;
+            previewSection.classList.remove('hidden');
+        }
+
+        function escapeHtml(text) {
+            const map = {
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#039;'
+            };
+            return text.replace(/[&<>"']/g, m => map[m]);
+        }
+
+        function downloadCSV() {
+            try {
+                const data = getValueByPath(currentData, selectedPath);
+                const flattenedData = data.map(item => flattenObject(item));
+
+                const csv = Papa.unparse(flattenedData, {
+                    quotes: true,
+                    header: true
+                });
+
+                const BOM = '\uFEFF';
+                const blob = new Blob([BOM + csv], { type: 'text/csv;charset=utf-8;' });
+                const link = document.createElement('a');
+                const url = URL.createObjectURL(blob);
+
+                link.href = url;
+                link.download = `export_${Date.now()}.csv`;
+                link.click();
+
+                URL.revokeObjectURL(url);
+                showToast('CSV 已下载', 'success');
+            } catch (error) {
+                showToast('下载失败: ' + error.message, 'error');
+            }
+        }
+
+        function downloadExcel() {
+            try {
+                const data = getValueByPath(currentData, selectedPath);
+                const flattenedData = data.map(item => flattenObject(item));
+
+                const worksheet = XLSX.utils.json_to_sheet(flattenedData);
+                const workbook = XLSX.utils.book_new();
+                XLSX.utils.book_append_sheet(workbook, worksheet, 'Sheet1');
+
+                XLSX.writeFile(workbook, `export_${Date.now()}.xlsx`);
+                showToast('Excel 已下载', 'success');
+            } catch (error) {
+                showToast('下载失败: ' + error.message, 'error');
+            }
+        }
+
+        function copyToClipboard() {
+            try {
+                const data = getValueByPath(currentData, selectedPath);
+                const flattenedData = data.map(item => flattenObject(item));
+
+                const csv = Papa.unparse(flattenedData, {
+                    quotes: true,
+                    header: true
+                });
+
+                navigator.clipboard.writeText(csv).then(() => {
+                    showToast('已复制到剪贴板', 'success');
+                }).catch(() => {
+                    showToast('复制失败', 'error');
+                });
+            } catch (error) {
+                showToast('复制失败: ' + error.message, 'error');
+            }
+        }
+
+        function clearAll() {
+            document.getElementById('jsonInput').value = '';
+            document.getElementById('pathSection').classList.add('hidden');
+            document.getElementById('previewSection').classList.add('hidden');
+            document.getElementById('downloadCsvBtn').disabled = true;
+            document.getElementById('downloadExcelBtn').disabled = true;
+            document.getElementById('copyBtn').disabled = true;
+            currentData = null;
+            selectedPath = '$';
+            showToast('已清除', 'success');
+        }
+    </script>
+</body>
+</html>

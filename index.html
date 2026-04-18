@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JSON to CSV 转换器</title>
+    <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>JSON to CSV 转换器</h1>
+            <p>支持拖拽文件、粘贴文本或从剪贴板读取</p>
+        </header>
+
+        <main>
+            <section class="input-section">
+                <h2>输入区域</h2>
+                <div class="input-controls">
+                    <button id="fileBtn" class="btn btn-primary">选择文件</button>
+                    <button id="clipboardBtn" class="btn btn-primary">从剪贴板粘贴</button>
+                    <button id="convertBtn" class="btn btn-success">🔄 转换</button>
+                    <button id="clearBtn" class="btn btn-secondary">清除</button>
+                    <input type="file" id="fileInput" accept=".json" style="display: none;">
+                </div>
+                <div id="dropZone" class="drop-zone">
+                    <p>拖拽 JSON 文件到这里，或点击上方按钮</p>
+                </div>
+                <textarea id="jsonInput" placeholder="或者在这里粘贴 JSON 数据..."></textarea>
+            </section>
+
+            <section class="path-section" id="pathSection" style="display: none;">
+                <h2>路径选择</h2>
+                <div id="pathOptions" class="path-options"></div>
+                <div class="custom-path">
+                    <label for="customPath">自定义路径 (JSONPath):</label>
+                    <input type="text" id="customPath" placeholder="例如: $.data.users">
+                    <button id="applyPathBtn" class="btn btn-small">应用</button>
+                </div>
+            </section>
+
+            <section class="preview-section" id="previewSection" style="display: none;">
+                <h2>预览 (前10行)</h2>
+                <div id="previewContainer" class="preview-container"></div>
+            </section>
+
+            <section class="actions-section" id="actionsSection">
+                <h2>导出选项</h2>
+                <button id="downloadCsvBtn" class="btn btn-success" disabled>📥 下载 CSV</button>
+                <button id="downloadExcelBtn" class="btn btn-success" disabled>📊 下载 Excel (XLSX)</button>
+                <button id="copyBtn" class="btn btn-primary" disabled>📋 复制到剪贴板</button>
+            </section>
+        </main>
+
+        <div id="toast" class="toast"></div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
+    <script type="module" src="js/app.js"></script>
+</body>
+</html>
